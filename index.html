@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visitor Register</title>
+<style>
+  :root {
+    --bg: #f6f4ef; --card: #ffffff; --ink: #1d2433; --muted: #5d6677;
+    --line: #dcd8cf; --accent: #2f5d50; --accent-ink: #ffffff;
+    --warn: #a3412f; --soft: #eaf1ee;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15181d; --card: #1f242c; --ink: #eceff4; --muted: #a3acba;
+      --line: #343b46; --accent: #6fb39d; --accent-ink: #0f1a16;
+      --warn: #e58a76; --soft: #22302b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 18px/1.45 system-ui, "Segoe UI", Roboto, sans-serif; }
+  header { padding: 20px 16px 8px; max-width: 900px; margin: 0 auto; }
+  header h1 { margin: 0; font-size: 1.6rem; }
+  header p { margin: 2px 0 0; color: var(--muted); }
+  nav { display: flex; gap: 8px; padding: 8px 16px; max-width: 900px; margin: 0 auto; flex-wrap: wrap; }
+  nav button { flex: 1; min-width: 120px; padding: 14px; font-size: 1rem; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
+  nav button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  main { max-width: 900px; margin: 0 auto; padding: 8px 16px 40px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+  section[hidden] { display: none; }
+  h2 { margin: 0 0 12px; font-size: 1.25rem; }
+  label { display: block; font-weight: 600; margin: 14px 0 6px; }
+  label small { font-weight: 400; color: var(--muted); }
+  input, select { width: 100%; padding: 14px; font-size: 1.05rem; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+  @media (max-width: 600px) { .row { grid-template-columns: 1fr; } }
+  .big { margin-top: 20px; width: 100%; padding: 18px; font-size: 1.2rem; font-weight: 700;
+    border: 0; border-radius: 12px; background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+  .btn { padding: 10px 16px; font-size: 1rem; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); cursor: pointer; }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  .msg { margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: var(--soft); display: none; }
+  .msg.show { display: block; }
+  .count { font-size: 2.2rem; font-weight: 700; color: var(--accent); }
+  ul.list { list-style: none; padding: 0; margin: 12px 0 0; }
+  ul.list li { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 12px 0; border-top: 1px solid var(--line); flex-wrap: wrap; }
+  .who { font-weight: 600; }
+  .meta { color: var(--muted); font-size: 0.92rem; }
+  .tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; margin-bottom: 12px; }
+  .tools > div { flex: 1; min-width: 160px; }
+  .tools label { margin-top: 0; }
+  .tablewrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 600; }
+  .empty { color: var(--muted); padding: 12px 0; }
+  .note { color: var(--muted); font-size: 0.9rem; margin-top: 14px; }
+  @media print {
+    nav, .tools, .noprint, header p { display: none !important; }
+    body { background: #fff; color: #000; }
+    section { border: 0; padding: 0; }
+    section[hidden] { display: none !important; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>The Veterans Cottage</h1>
+  <p>Visitor Register — please sign in when you arrive and sign out when you leave.</p>
+</header>
+
+<nav role="tablist">
+  <button role="tab" data-tab="signin" aria-selected="true">Sign in</button>
+  <button role="tab" data-tab="here" aria-selected="false">Sign out / Who's here</button>
+  <button role="tab" data-tab="history" aria-selected="false">Register book</button>
+</nav>
+
+<main>
+  <!-- SIGN IN -->
+  <section id="tab-signin">
+    <h2>Sign in</h2>
+    <form id="signinForm" autocomplete="off">
+      <div class="row">
+        <div>
+          <label for="name">Your full name</label>
+          <input id="name" required maxlength="80">
+        </div>
+        <div>
+          <label for="visiting">Who are you visiting?</label>
+          <input id="visiting" required maxlength="80" placeholder="Name of resident or staff member">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="reason">Reason for visit</label>
+          <select id="reason">
+            <option>Visiting a resident</option>
+            <option>Appointment / meeting</option>
+            <option>Volunteer</option>
+            <option>Contractor / tradesperson</option>
+            <option>Delivery</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label for="phone">Phone number <small>(optional)</small></label>
+          <input id="phone" type="tel" maxlength="30">
+        </div>
+      </div>
+      <label for="car">Car registration <small>(optional)</small></label>
+      <input id="car" maxlength="15" style="text-transform:uppercase">
+      <button class="big" type="submit">Sign in</button>
+      <div class="msg" id="signinMsg" role="status"></div>
+    </form>
+  </section>
+
+  <!-- WHO'S HERE -->
+  <section id="tab-here" hidden>
+    <h2>In the building now</h2>
+    <div><span class="count" id="hereCount">0</span> <span class="meta">visitor(s) signed in</span></div>
+    <ul class="list" id="hereList"></ul>
+    <p class="note">Tap <b>Sign out</b> next to your name when you leave. This list can be used as a fire roll-call.</p>
+  </section>
+
+  <!-- HISTORY -->
+  <section id="tab-history" hidden>
+    <h2>Register book</h2>
+    <div class="tools">
+      <div><label for="fromDate">From</label><input id="fromDate" type="date"></div>
+      <div><label for="toDate">To</label><input id="toDate" type="date"></div>
+      <div><label for="search">Search</label><input id="search" placeholder="Name, visiting, car…"></div>
+    </div>
+    <div class="tools noprint">
+      <button class="btn primary" id="exportBtn" type="button">Download for Excel (CSV)</button>
+      <button class="btn" id="printBtn" type="button">Print</button>
+    </div>
+    <p class="meta" id="histSummary"></p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Date</th><th>In</th><th>Out</th><th>Name</th><th>Visiting</th><th>Reason</th><th>Phone</th><th>Car</th></tr></thead>
+        <tbody id="histBody"></tbody>
+      </table>
+    </div>
+    <p class="note noprint">Visits are saved in this browser on this device only. Download a copy for Excel regularly as a backup — clearing the browser's history/data will erase the register.</p>
+  </section>
+</main>
+
+<script>
+(function () {
+  var KEY = "veterans-cottage-visitor-register-v1";
+  var memory = [];
+  var storageOK = true;
+
+  function load() {
+    try { var raw = localStorage.getItem(KEY); memory = raw ? JSON.parse(raw) : []; }
+    catch (e) { storageOK = false; memory = memory || []; }
+    return memory;
+  }
+  function save(list) {
+    memory = list;
+    try { localStorage.setItem(KEY, JSON.stringify(list)); }
+    catch (e) { storageOK = false; }
+  }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function dayKey(iso) { var d = new Date(iso); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+  function timeOf(iso) { if (!iso) return ""; var d = new Date(iso); return pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+  function niceDate(iso) { return new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }); }
+
+  // Tabs
+  var tabs = document.querySelectorAll("nav button");
+  function show(name) {
+    tabs.forEach(function (b) { b.setAttribute("aria-selected", b.dataset.tab === name ? "true" : "false"); });
+    ["signin", "here", "history"].forEach(function (t) { document.getElementById("tab-" + t).hidden = t !== name; });
+    if (name === "here") renderHere();
+    if (name === "history") renderHistory();
+  }
+  tabs.forEach(function (b) { b.addEventListener("click", function () { show(b.dataset.tab); }); });
+
+  // Sign in
+  var form = document.getElementById("signinForm");
+  var msg = document.getElementById("signinMsg");
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var v = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      name: document.getElementById("name").value.trim(),
+      visiting: document.getElementById("visiting").value.trim(),
+      reason: document.getElementById("reason").value,
+      phone: document.getElementById("phone").value.trim(),
+      car: document.getElementById("car").value.trim().toUpperCase(),
+      inAt: new Date().toISOString(),
+      outAt: null
+    };
+    if (!v.name || !v.visiting) return;
+    var list = load(); list.push(v); save(list);
+    form.reset();
+    msg.textContent = "Thank you, " + v.name + " — you're signed in at " + timeOf(v.inAt) + ". Please remember to sign out when you leave."
+      + (storageOK ? "" : " (Warning: this browser isn't saving the register — please tell staff.)");
+    msg.classList.add("show");
+    clearTimeout(msg._t); msg._t = setTimeout(function () { msg.classList.remove("show"); }, 8000);
+  });
+
+  // Who's here
+  function renderHere() {
+    var here = load().filter(function (v) { return !v.outAt; })
+      .sort(function (a, b) { return a.inAt < b.inAt ? -1 : 1; });
+    document.getElementById("hereCount").textContent = here.length;
+    var ul = document.getElementById("hereList");
+    if (!here.length) { ul.innerHTML = '<li class="empty">No visitors are signed in.</li>'; return; }
+    ul.innerHTML = here.map(function (v) {
+      var sameDay = dayKey(v.inAt) === dayKey(new Date().toISOString());
+      return '<li><div><div class="who">' + esc(v.name) + '</div><div class="meta">Visiting ' + esc(v.visiting)
+        + ' · in at ' + timeOf(v.inAt) + (sameDay ? "" : " on " + niceDate(v.inAt))
+        + (v.car ? " · car " + esc(v.car) : "") + '</div></div>'
+        + '<button class="btn primary" data-out="' + esc(v.id) + '">Sign out</button></li>';
+    }).join("");
+  }
+  document.getElementById("hereList").addEventListener("click", function (e) {
+    var id = e.target.getAttribute("data-out"); if (!id) return;
+    var list = load();
+    list.forEach(function (v) { if (v.id === id && !v.outAt) v.outAt = new Date().toISOString(); });
+    save(list); renderHere();
+  });
+
+  // History
+  var fromEl = document.getElementById("fromDate"), toEl = document.getElementById("toDate"), searchEl = document.getElementById("search");
+  var today = dayKey(new Date().toISOString());
+  fromEl.value = today; toEl.value = today;
+  [fromEl, toEl, searchEl].forEach(function (el) { el.addEventListener("input", renderHistory); });
+
+  function filtered() {
+    var q = searchEl.value.trim().toLowerCase();
+    return load().filter(function (v) {
+      var d = dayKey(v.inAt);
+      if (fromEl.value && d < fromEl.value) return false;
+      if (toEl.value && d > toEl.value) return false;
+      if (q && (v.name + " " + v.visiting + " " + v.reason + " " + v.car + " " + v.phone).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    }).sort(function (a, b) { return a.inAt < b.inAt ? 1 : -1; });
+  }
+  function renderHistory() {
+    var rows = filtered();
+    document.getElementById("histSummary").textContent = rows.length + " visit(s) shown";
+    document.getElementById("histBody").innerHTML = rows.length ? rows.map(function (v) {
+      return "<tr><td>" + niceDate(v.inAt) + "</td><td>" + timeOf(v.inAt) + "</td><td>" + (v.outAt ? timeOf(v.outAt) : "<b>still in</b>")
+        + "</td><td>" + esc(v.name) + "</td><td>" + esc(v.visiting) + "</td><td>" + esc(v.reason)
+        + "</td><td>" + esc(v.phone) + "</td><td>" + esc(v.car) + "</td></tr>";
+    }).join("") : '<tr><td colspan="8" class="empty">No visits in this period.</td></tr>';
+  }
+
+  function csvCell(s) {
+    s = String(s == null ? "" : s);
+    if (/^[=+\-@]/.test(s)) s = "'" + s; // stop Excel treating text as a formula
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  document.getElementById("exportBtn").addEventListener("click", function () {
+    var rows = filtered().slice().reverse();
+    var lines = [["Date", "Time in", "Time out", "Name", "Visiting", "Reason", "Phone", "Car registration"].map(csvCell).join(",")];
+    rows.forEach(function (v) {
+      lines.push([dayKey(v.inAt), timeOf(v.inAt), timeOf(v.outAt), v.name, v.visiting, v.reason, v.phone, v.car].map(csvCell).join(","));
+    });
+    var blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "visitor-register_" + (fromEl.value || "all") + "_to_" + (toEl.value || "all") + ".csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
+  document.getElementById("printBtn").addEventListener("click", function () { window.print(); });
+
+  load();
+})();
+</script>
+</body>
+</html>
