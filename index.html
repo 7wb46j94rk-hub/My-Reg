@@ -122,6 +122,7 @@
       <button class="big" type="submit">Sign in</button>
       <div class="msg" id="signinMsg" role="status"></div>
     </form>
+    <p class="note"><b>Your privacy:</b> we use these details only to keep everyone safe (including the fire roll-call) and to know who is on site. They stay on this iPad, are seen only by our staff, are never shared or sold, and are deleted automatically after 3 months. You can ask staff to see, correct or delete your details, or object to us using them, and you can complain to the Information Commissioner's Office (ico.org.uk).</p>
   </section>
 
   <!-- WHO'S HERE -->
@@ -151,7 +152,7 @@
         <tbody id="histBody"></tbody>
       </table>
     </div>
-    <p class="note noprint">Visits are saved in this browser on this device only. Download a copy for Excel regularly as a backup — clearing the browser's history/data will erase the register.</p>
+    <p class="note noprint">Visits are saved in this browser on this device only and are deleted automatically after 3 months. Download a copy for Excel regularly as a backup — clearing the browser's history/data will erase the register. Delete downloaded copies older than 3 months too.</p>
   </section>
 </main>
 
@@ -161,9 +162,15 @@
   var memory = [];
   var storageOK = true;
 
+  var KEEP_MONTHS = 3; // visits older than this are deleted automatically (data protection)
+
   function load() {
     try { var raw = localStorage.getItem(KEY); memory = raw ? JSON.parse(raw) : []; }
     catch (e) { storageOK = false; memory = memory || []; }
+    var cutoff = new Date(); cutoff.setMonth(cutoff.getMonth() - KEEP_MONTHS);
+    var cut = cutoff.toISOString();
+    var kept = memory.filter(function (v) { return v.inAt >= cut; });
+    if (kept.length !== memory.length) save(kept);
     return memory;
   }
   function save(list) {
