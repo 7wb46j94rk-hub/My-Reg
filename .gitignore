@@ -1,0 +1,10 @@
+# Never back up secrets
+.env
+.env.*
+*.key
+*.pem
+secrets*
+
+# Windows clutter
+Thumbs.db
+desktop.ini
